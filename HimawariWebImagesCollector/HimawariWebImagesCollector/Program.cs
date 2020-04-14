@@ -1,12 +1,15 @@
-﻿using System;
-
-namespace HimawariWebImagesCollector
+﻿namespace Hwic
 {
+    using System;
+
+    using Serilog;
+
+
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+
         }
     }
 }

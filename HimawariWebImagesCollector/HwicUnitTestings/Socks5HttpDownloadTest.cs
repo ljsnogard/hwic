@@ -2,6 +2,7 @@ namespace Hwic.UnitTestings
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
 
@@ -30,11 +31,11 @@ namespace Hwic.UnitTestings
             30u,
             "2020_0309_044000_8_2.png"
         )]
-        public async Task Test1(
+        public async Task TestDownloadThroughProxy(
                 string httpUri,
                 string socksProxyAddr,
-                int socksAddrPort,
-                uint timeoutSec,
+                int    socksAddrPort,
+                uint   timeoutSec,
                 string filename)
         {
             var proxy = new HttpToSocks5Proxy(socksProxyAddr, socksAddrPort);
@@ -60,7 +61,13 @@ namespace Hwic.UnitTestings
                 Assert.True(sendRequestTask.IsCompleted);
             }
 
-            using var httpContStream = await (await sendRequestTask).Content.ReadAsStreamAsync();
+            using var responseMessage = await sendRequestTask;
+
+            var contentLength = responseMessage.Headers.Where(h => h.Key.Contains("Content-Length"));
+            foreach (var kv in contentLength)
+                this.Output.WriteLine($"{kv.Key}: {kv.Value}");
+
+            using var httpContStream = await responseMessage.Content.ReadAsStreamAsync();
             using var fileContStream = new FileStream(
                 path: filename,
                 mode: FileMode.Create,
