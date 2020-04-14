@@ -1,15 +1,12 @@
-﻿namespace Hwic
+﻿using System;
+
+namespace HwicCli
 {
-    using System;
-
-    using Serilog;
-
-
     class Program
     {
         static void Main(string[] args)
         {
-
+            Console.WriteLine("Hello World!");
         }
     }
 }

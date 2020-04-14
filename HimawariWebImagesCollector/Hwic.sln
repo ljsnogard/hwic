@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30002.166
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HimawariWebImagesCollector", "HimawariWebImagesCollector\HimawariWebImagesCollector.csproj", "{8516DCD4-E548-44B2-8042-8B98F09B5233}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HwicLib", "HwicLib\HwicLib.csproj", "{8516DCD4-E548-44B2-8042-8B98F09B5233}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HwicUnitTestings", "HwicUnitTestings\HwicUnitTestings.csproj", "{FA274A52-9932-47BD-8C26-5A73CCAD9E88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HwicUnitTestings", "HwicUnitTestings\HwicUnitTestings.csproj", "{FA274A52-9932-47BD-8C26-5A73CCAD9E88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HwicCli", "HwicCli\HwicCli.csproj", "{0A6E9203-7016-4422-8664-9ED8D1F19E05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{FA274A52-9932-47BD-8C26-5A73CCAD9E88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA274A52-9932-47BD-8C26-5A73CCAD9E88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA274A52-9932-47BD-8C26-5A73CCAD9E88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A6E9203-7016-4422-8664-9ED8D1F19E05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A6E9203-7016-4422-8664-9ED8D1F19E05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A6E9203-7016-4422-8664-9ED8D1F19E05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A6E9203-7016-4422-8664-9ED8D1F19E05}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
