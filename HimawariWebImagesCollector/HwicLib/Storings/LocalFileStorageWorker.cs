@@ -40,22 +40,31 @@
         }
 
 
-        public async Task StoreAsync(
+        public async Task<uint> StoreAsync(
                 IDataPipeConsumerEnd dataPipe,
                 CancellationToken? optToken = null)
         {
             var token = optToken.GetValueOrDefault(CancellationToken.None);
+            var bc = 0u;
+            var filePath = string.Empty;
             try
             {
                 using var fileContStream = this.Config.CreateFileStream(this.ResourceUri);
 
-                this.Log.Information("Resource {@Uri} will store on local file {@Path}", this.ResourceUri, fileContStream.Name);
+                filePath = fileContStream.Name;
+                this.Log.Information("Resource {@Uri} will store on local file {@Path}", this.ResourceUri, filePath);
 
-                await dataPipe.CopyToStreamAsync(fileContStream, token);
+                bc = await dataPipe.CopyToStreamAsync(fileContStream, token);
+                return bc;
             }
             catch (Exception e)
             {
                 this.Log.Error("Exception occurred during store resource {@Uri} to local file: {@ErrorMessage}", this.ResourceUri, e.Message);
+                throw;
+            }
+            finally
+            {
+                this.Log.Information($"{bc} bytes written from {this.ResourceUri} to file {filePath}.");
             }
         }
     }

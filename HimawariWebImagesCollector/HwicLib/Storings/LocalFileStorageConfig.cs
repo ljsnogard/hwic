@@ -1,11 +1,18 @@
 ﻿namespace Hwic.Storings
 {
     using System;
+
+    using System.Collections.Generic;
     using System.Collections.Specialized;
+
     using System.IO;
+    using System.Linq;
 
 
     using Hwic.Abstractings;
+
+
+    using Serilog;
 
 
     public class LocalFileStorageConfig : IStorageConfig
@@ -57,7 +64,9 @@
 
     public static class LocalFileStorageConfigStreamExtensions
     {
-        public static FileStream CreateFileStream(this LocalFileStorageConfig config, Uri resourceUri)
+        public static FileStream CreateFileStream(
+                this LocalFileStorageConfig config,
+                Uri resourceUri)
         {
             DirectoryInfo rootDir;
             if (false == File.Exists(config.RootDirectory))
@@ -77,11 +86,12 @@
             }
             if (config.IsCreatePathEnabled && config.IsKeepDirStructureEnabled)
             {
-                var folderPath = Path.GetDirectoryName(
-                    Path.Combine(
-                        config.RootDirectory,
-                        resourceUri.AbsolutePath
-                ));
+                var paramsList = new List<string> { config.RootDirectory };
+                foreach (var fldename in resourceUri.AbsolutePath.Split('/'))
+                    paramsList.Add(fldename);
+
+                var folderPath = Path.GetDirectoryName(Path.Combine(paramsList.ToArray()));
+
                 var folder = Directory.CreateDirectory(folderPath);
                 var fileName = Path.GetFileName(resourceUri.AbsolutePath);
 

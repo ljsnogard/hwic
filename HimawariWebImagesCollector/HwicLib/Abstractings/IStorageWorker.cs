@@ -18,7 +18,7 @@
         Uri ResourceUri { get; }
 
 
-        Task StoreAsync(
+        Task<uint> StoreAsync(
             IDataPipeConsumerEnd dataPipe,
             CancellationToken? optToken = null
         );

@@ -52,14 +52,16 @@
             using var request = new HttpRequestMessage(HttpMethod.Get, this.ResourceUri);
             var sendRequestTask = httpClient.SendAsync(request, token);
 
-            this.Log.Verbose("Requesting {@Uri}", this.ResourceUri);
+            this.Log.Information("Requesting {@Uri}", this.ResourceUri);
+            var bc = 0u;
             try
             {
                 using var respMsg = await sendRequestTask;
-                this.Log.Verbose("Got {@Uri} response headers: {@Headers}", this.ResourceUri, respMsg.Headers);
+                this.Log.Information("Got {@Uri} response {@Status}", this.ResourceUri, respMsg.StatusCode);
 
                 using var httpContStream = await respMsg.Content.ReadAsStreamAsync();
-                return await httpContStream.CopyToPipeAsync(dataPipe, token);
+                bc = await httpContStream.CopyToPipeAsync(dataPipe, token);
+                return bc;
             }
             catch (TaskCanceledException)
             {
@@ -70,6 +72,10 @@
             {
                 this.Log.Error("Exception occurred when downloading from {@Uri}. {@ErrorMessage}", this.ResourceUri, e.Message);
                 throw;
+            }
+            finally
+            {
+                this.Log.Information($"{bc} bytes downloaded from: {this.ResourceUri}");
             }
         }
     }

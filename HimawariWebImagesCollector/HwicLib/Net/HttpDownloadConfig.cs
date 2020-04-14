@@ -104,7 +104,9 @@
         }
 
 
+
         private static readonly HttpClientManager mgr_ = new HttpClientManager();
+
 
 
         public static HttpClient GetHttpClient(this HttpDownloadConfig config)

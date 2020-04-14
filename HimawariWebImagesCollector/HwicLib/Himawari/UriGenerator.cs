@@ -30,7 +30,7 @@
             var month = utcTime.Month.ToString(NUM_FMT);
             var day = utcTime.Day.ToString(NUM_FMT);
             var hour = utcTime.Hour.ToString(NUM_FMT);
-            var minute = utcTime.Minute.ToString(NUM_FMT);
+            var minute = GetTenCeiling_(utcTime.Minute).ToString(NUM_FMT);
             const string second = "00";
 
             var moment = $"{hour}{minute}{second}";
@@ -51,6 +51,9 @@
                 var uriStr = Url.Combine(urlStr, fn);
                 yield return new Uri($"https://{uriStr}");
             }
+
+            static int GetTenCeiling_(int v)
+                => v - (v % 10);
         }
     }
 }
