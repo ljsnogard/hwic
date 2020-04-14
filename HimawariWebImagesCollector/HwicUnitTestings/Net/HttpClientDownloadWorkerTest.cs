@@ -84,13 +84,9 @@
 
             var uri = new Uri(uriStr);
             var dlworker = new HttpClientDownloadWorker(dlconfig, uri, logger);
-            var stworker = new LocalFileStorageWorker(stconfig, uri, logger);
-            var pipe = StreamDataPipe.Create<MemoryStream>();
+            var pipe = StreamDataPipe.Create(() => stconfig.CreateFileStream(uri));
 
-            var dlTask = dlworker.StartAsync(pipe);
-            var stTask = stworker.StoreAsync(pipe);
-
-            await Task.WhenAll(dlTask, stTask);
+            await dlworker.StartAsync(pipe);
 
             if (pipe is IDataPipeProducerEnd p)
                 await p.CloseAsync();
