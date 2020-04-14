@@ -1,4 +1,4 @@
-﻿namespace Hwic.DataHandlings
+﻿namespace Hwic.Pipes
 {
     using System;
     

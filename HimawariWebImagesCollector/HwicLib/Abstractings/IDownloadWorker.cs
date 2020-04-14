@@ -17,7 +17,7 @@
         Uri ResourceUri { get; }
 
 
-        Task StartAsync(
+        Task<uint> StartAsync(
             IDataPipeProducerEnd dataPipe,
             CancellationToken? optToken
         );
