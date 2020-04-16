@@ -42,7 +42,7 @@
                 .WriteTo.File($"{nameof(TestStoreFileAsync)}.log")
                 .CreateLogger();
 
-            var stworker = new LocalFileStorageWorker(stconfig, uri, logger);
+            var stworker = new LocalFileStorageWorker(stconfig, uri);
 
             var queue = new AsyncProducerConsumerQueue<Memory<byte>>();
 

@@ -14,9 +14,7 @@
 
 
     using Hwic.Abstractings;
-
-
-    using Serilog;
+    using Hwic.Loggings;
 
 
     public class S3StorageWorker : IStorageWorker
@@ -27,14 +25,10 @@
         public Uri ResourceUri { get; }
 
 
-        private ILogger Log { get; }
-
-
-        public S3StorageWorker(S3StorageConfig config, Uri resourceUri, ILogger logger)
+        public S3StorageWorker(S3StorageConfig config, Uri resourceUri)
         {
             this.Config = config;
             this.ResourceUri = resourceUri;
-            this.Log = logger;
         }
 
 
@@ -47,6 +41,8 @@
                 Func<CancellationToken, Task<bool>> canDequeue,
                 CancellationToken? optToken = null)
         {
+            var log = this.GetLogger();
+
             var token = optToken.GetValueOrDefault(CancellationToken.None);
             var uploadSize = 0UL;
             try
@@ -80,7 +76,7 @@
             }
             catch (AmazonS3Exception s3Exception)
             {
-                this.Log.Error(
+                log.Here().Error(
                     "AmazonS3Exception occurred when writing to S3 upload stream for {@Uri}: {@ErrorMessage}",
                     this.ResourceUri, s3Exception.Message
                 );
@@ -95,6 +91,7 @@
                 Stream stream,
                 CancellationToken token)
         {
+            var log = this.GetLogger();
             var wc = 0UL;
             try
             {
@@ -111,12 +108,12 @@
             }
             catch (IOException e)
             {
-                this.Log.Error("IOException occurred when writing to S3 upload stream for {@Uri}: {@ErrorMessage}", this.ResourceUri, e.Message);
+                log.Here().Error("IOException occurred when writing to S3 upload stream for {@Uri}: {@ErrorMessage}", this.ResourceUri, e.Message);
                 throw;
             }
             catch (TaskCanceledException)
             {
-                this.Log.Warning("Cancelled writing to S3 upload stream for {@Uri}", this.ResourceUri);
+                log.Here().Warning("Cancelled writing to S3 upload stream for {@Uri}", this.ResourceUri);
             }
             return wc;
         }

@@ -1,7 +1,6 @@
 ﻿namespace Hwic.Net
 {
     using System;
-    using System.IO;
 
     using System.Net.Http;
 
@@ -10,12 +9,7 @@
 
 
     using Hwic.Abstractings;
-
-
-    using Nito.AsyncEx;
-
-
-    using Serilog;
+    using Hwic.Loggings;
 
 
     public class HttpClientDownloadWorker : IDownloadWorker
@@ -26,21 +20,14 @@
         public Uri ResourceUri { get; }
 
 
-        private ILogger Log { get; }
-
-
         IDownloadConfig IDownloadWorker.DownloadConfig
             => this.Config;
 
 
-        public HttpClientDownloadWorker(
-                HttpDownloadConfig config,
-                Uri resourceUri,
-                ILogger logger)
+        public HttpClientDownloadWorker(HttpDownloadConfig config, Uri resourceUri)
         {
             this.Config = config;
             this.ResourceUri = resourceUri;
-            this.Log = logger;
         }
 
 
@@ -49,6 +36,8 @@
                 Func<CancellationToken, Task<bool>> canEnqueue,
                 CancellationToken? optToken = null)
         {
+            var log = this.GetLogger();
+
             var token = optToken.GetValueOrDefault(CancellationToken.None);
             var bc = 0uL;
             try
@@ -58,13 +47,13 @@
                 using var request = new HttpRequestMessage(HttpMethod.Get, this.ResourceUri);
                 var sendRequestTask = httpClient.SendAsync(request, token);
 
-                this.Log.Verbose("Requesting {@Uri}", this.ResourceUri);
+                log.Here().Verbose("Requesting {@Uri}", this.ResourceUri);
 
                 using var respMsg = await sendRequestTask;
                 if (respMsg.IsSuccessStatusCode)
-                    this.Log.Verbose("Got {@Uri} response {@Status}", this.ResourceUri, respMsg.StatusCode);
+                    log.Here().Verbose("Got {@Uri} response {@Status}", this.ResourceUri, respMsg.StatusCode);
                 else
-                    this.Log.Warning("Got {@Uri} response {@Status}", this.ResourceUri, respMsg.StatusCode);
+                    log.Here().Warning("Got {@Uri} response {@Status}", this.ResourceUri, respMsg.StatusCode);
 
                 using var httpContStream = await respMsg.Content.ReadAsStreamAsync();
 
@@ -73,7 +62,7 @@
                 {
                     if (false == await canEnqueue(token))
                     {
-                        this.Log.Warning($"canEnqueue returns false");
+                        log.Here().Warning($"canEnqueue returns false");
                         break;
                     }
                     var rc = await httpContStream.ReadAsync(
@@ -92,7 +81,7 @@
                     }
                     if (rc <= 0)
                     {
-                        this.Log.Verbose("Download {@Uri} readAsync returns {rc}", rc);
+                        log.Here().Verbose("Download {@Uri} readAsync returns {rc}", rc);
                         break;
                     }
                 }
@@ -100,17 +89,17 @@
             }
             catch (TaskCanceledException)
             {
-                this.Log.Warning("Cancelled when downloading from {@Uri}", this.ResourceUri);
+                log.Here().Warning("Cancelled when downloading from {@Uri}", this.ResourceUri);
                 return bc;
             }
             catch (Exception e)
             {
-                this.Log.Error("Exception occurred when downloading from {@Uri}. {@ErrorMessage}", this.ResourceUri, e.Message);
+                log.Here().Error("Exception occurred when downloading from {@Uri}. {@ErrorMessage}", this.ResourceUri, e.Message);
                 throw;
             }
             finally
             {
-                this.Log.Information($"{bc} bytes downloaded from: {this.ResourceUri}");
+                log.Here().Information($"{bc} bytes downloaded from: {this.ResourceUri}");
             }
         }
     }

@@ -50,8 +50,8 @@
             logger.Information("temp dir: {currdir}", tempdir);
 
             var uri = new Uri(uriStr);
-            var dlworker = new HttpClientDownloadWorker(dlconfig, uri, logger);
-            var stworker = new LocalFileStorageWorker(stconfig, uri, logger);
+            var dlworker = new HttpClientDownloadWorker(dlconfig, uri);
+            var stworker = new LocalFileStorageWorker(stconfig, uri);
 
             var dataQueue = new AsyncProducerConsumerQueue<Memory<byte>>();
 
