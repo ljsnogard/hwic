@@ -12,8 +12,10 @@
 
 
     using Hwic.Net;
-    using Hwic.Pipes;
     using Hwic.Storings;
+
+
+    using Nito.AsyncEx;
 
 
     using Serilog;
@@ -33,42 +35,7 @@
 
 
         [Theory]
-        [InlineData(@"https://bastille.readthedocs.io/en/latest/chapters/usage.html")]
-        [InlineData(@"https://www.pconline.com.cn/index.html")]
-        public async Task TestDownloadAsync(string uriStr)
-        {
-            var config = new HttpDownloadConfig();
-            var uri = new Uri(uriStr);
-            var log = new LoggerConfiguration().WriteTo.File("unit-test.log").CreateLogger();
-            var filename = Path.GetFileName(uri.AbsolutePath);
-
-            File.Exists(filename).Should().BeFalse();
-
-            this.Output.WriteLine($"Start download from {uri} and save to file {filename}");
-
-            var worker = new HttpClientDownloadWorker(config, uri, log);
-            
-            var filePipe = StreamDataPipe.Create(() => new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write));
-
-            var t = worker.StartAsync(filePipe);
-            await Task.WhenAny(t, Task.Delay(TimeSpan.FromSeconds(30)));
-            t.IsCompleted.Should().BeTrue();
-
-            var dlSize = t.Result;
-            dlSize.Should().BeGreaterThan(0u);
-
-            this.Output.WriteLine($"Wrote {dlSize} bytes data into file {filename}.");
-
-            if (filePipe is IDataPipeProducerEnd producerPipe)
-                await producerPipe.CloseAsync();
-
-            File.Exists(filename).Should().BeTrue();
-        }
-
-
-        [Theory]
-        [InlineData(@"https://bastille.readthedocs.io/en/latest/chapters/usage.html")]
-        [InlineData(@"https://www.pconline.com.cn/index.html")]
+        [InlineData(@"https://www.bilibili.com/blackboard/aboutUs.html")]
         public async Task TestDownloadAndStoreAsync(string uriStr)
         {
             var dlconfig = new HttpDownloadConfig();
@@ -84,15 +51,24 @@
 
             var uri = new Uri(uriStr);
             var dlworker = new HttpClientDownloadWorker(dlconfig, uri, logger);
-            var pipe = StreamDataPipe.Create(() => stconfig.CreateFileStream(uri));
+            var stworker = new LocalFileStorageWorker(stconfig, uri, logger);
 
-            await dlworker.StartAsync(pipe);
+            var dataQueue = new AsyncProducerConsumerQueue<Memory<byte>>();
 
-            if (pipe is IDataPipeProducerEnd p)
-                await p.CloseAsync();
+            var dlTask = dlworker.StartAsync(
+                dataQueue.EnqueueAsync,
+                tk => Task.FromResult(true)
+            );
+            var stTask = stworker.StoreAsync(
+                dataQueue.DequeueAsync,
+                dataQueue.OutputAvailableAsync
+            );
 
-            if (pipe is IDataPipeConsumerEnd c)
-                await c.CloseAsync();
+            var dlSize = await dlTask;
+            dataQueue.CompleteAdding();
+
+            var stSize = await stTask;
+            (dlSize == stSize).Should().BeTrue();
         }
     }
 }

@@ -1,12 +1,10 @@
 ﻿namespace Hwic.Abstractings
 {
     using System;
+    using System.IO;
 
     using System.Threading;
     using System.Threading.Tasks;
-
-
-    using Hwic.Pipes;
 
 
     public interface IDownloadWorker
@@ -17,8 +15,9 @@
         Uri ResourceUri { get; }
 
 
-        Task<uint> StartAsync(
-            IDataPipeProducerEnd dataPipe,
+        Task<ulong> StartAsync(
+            Func<Memory<byte>, CancellationToken, Task> enqueueFn,
+            Func<CancellationToken, Task<bool>> canEnqueuFn,
             CancellationToken? optToken
         );
     }

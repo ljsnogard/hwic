@@ -8,7 +8,6 @@
 
 
     using Hwic.Abstractings;
-    using Hwic.Pipes;
 
 
     using Serilog;
@@ -40,13 +39,14 @@
         }
 
 
-        public async Task<uint> StoreAsync(
-                IDataPipeConsumerEnd dataPipe,
+        public async Task<ulong> StoreAsync(
+                Func<CancellationToken, Task<Memory<byte>>> dequeueFn,
+                Func<CancellationToken, Task<bool>> canDequeueFn,
                 CancellationToken? optToken = null)
         {
             var token = optToken.GetValueOrDefault(CancellationToken.None);
-            var bc = 0u;
             var filePath = string.Empty;
+            var writtenSize = 0UL;
             try
             {
                 using var fileContStream = this.Config.CreateFileStream(this.ResourceUri);
@@ -54,17 +54,23 @@
                 filePath = fileContStream.Name;
                 this.Log.Information("Resource {@Uri} will store on local file {@Path}", this.ResourceUri, filePath);
 
-                bc = await dataPipe.CopyToStreamAsync(fileContStream, token);
-                return bc;
+                while (true)
+                {
+                    if (false == await canDequeueFn(token))
+                        break;
+
+                    var data = await dequeueFn(token);
+                    await fileContStream.WriteAsync(data);
+                    writtenSize += (uint)data.Length;
+
+                    this.Log.Information("Resource {@Uri} store {@FileSize} bytes written to file {@Path}", this.ResourceUri, writtenSize, filePath);
+                }
+                return writtenSize;
             }
             catch (Exception e)
             {
                 this.Log.Error("Exception occurred during store resource {@Uri} to local file: {@ErrorMessage}", this.ResourceUri, e.Message);
                 throw;
-            }
-            finally
-            {
-                this.Log.Information($"{bc} bytes written from {this.ResourceUri} to file {filePath}.");
             }
         }
     }

@@ -8,7 +8,6 @@
 
     using Hwic.Himawari;
     using Hwic.Net;
-    using Hwic.Pipes;
     using Hwic.Storings;
 
 

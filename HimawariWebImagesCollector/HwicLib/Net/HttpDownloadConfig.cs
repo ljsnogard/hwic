@@ -1,5 +1,6 @@
 ﻿namespace Hwic.Net
 {
+    using System;
     using System.Collections.Generic;
 
     using System.Linq;
@@ -11,15 +12,33 @@
 
     public class HttpDownloadConfig : IDownloadConfig
     {
+        public const uint DEFAULT_BUFFER_SIZE = 4096u;
+
+
         public IEnumerable<Socks5ProxyInfo> Proxies { get; }
 
 
-        public HttpDownloadConfig()
-            => this.Proxies = Enumerable.Empty<Socks5ProxyInfo>();
+        public readonly uint BufferSize;
 
 
-        public HttpDownloadConfig(params Socks5ProxyInfo[] infoItems)
-            => this.Proxies = infoItems;
+        public HttpDownloadConfig() :
+            this(DEFAULT_BUFFER_SIZE, Enumerable.Empty<Socks5ProxyInfo>())
+        { }
+
+
+        public HttpDownloadConfig(params Socks5ProxyInfo[] infoItems) :
+            this(DEFAULT_BUFFER_SIZE, infoItems)
+        { }
+
+
+        public HttpDownloadConfig(in uint bufferSize, IEnumerable<Socks5ProxyInfo> proxies)
+        {
+            if (bufferSize == 0u)
+                throw new ArgumentOutOfRangeException(nameof(bufferSize));
+
+            this.Proxies = proxies;
+            this.BufferSize = bufferSize;
+        }
     }
 
 

@@ -7,7 +7,7 @@
     using Flurl;
 
 
-    public class UriGenerator
+    public class UriGenerator_D531106
     {
         public int ResolutionOption => 20;
 

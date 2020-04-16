@@ -6,9 +6,6 @@
     using System.Threading.Tasks;
 
 
-    using Hwic.Pipes;
-
-
     public interface IStorageWorker
     {
         IStorageConfig Config { get; }
@@ -18,8 +15,9 @@
         Uri ResourceUri { get; }
 
 
-        Task<uint> StoreAsync(
-            IDataPipeConsumerEnd dataPipe,
+        Task<ulong> StoreAsync(
+            Func<CancellationToken, Task<Memory<byte>>> dequeueFn,
+            Func<CancellationToken, Task<bool>> canDequeueFn,
             CancellationToken? optToken = null
         );
     }

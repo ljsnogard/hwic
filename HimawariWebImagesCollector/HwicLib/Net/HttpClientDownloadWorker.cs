@@ -1,6 +1,7 @@
 ﻿namespace Hwic.Net
 {
     using System;
+    using System.IO;
 
     using System.Net.Http;
 
@@ -9,7 +10,9 @@
 
 
     using Hwic.Abstractings;
-    using Hwic.Pipes;
+
+
+    using Nito.AsyncEx;
 
 
     using Serilog;
@@ -41,32 +44,64 @@
         }
 
 
-        public async Task<uint> StartAsync(
-                IDataPipeProducerEnd dataPipe,
+        public async Task<ulong> StartAsync(
+                Func<Memory<byte>, CancellationToken, Task> enqueue,
+                Func<CancellationToken, Task<bool>> canEnqueue,
                 CancellationToken? optToken = null)
         {
             var token = optToken.GetValueOrDefault(CancellationToken.None);
-
-            var httpClient = this.Config.GetHttpClient();
-
-            using var request = new HttpRequestMessage(HttpMethod.Get, this.ResourceUri);
-            var sendRequestTask = httpClient.SendAsync(request, token);
-
-            this.Log.Information("Requesting {@Uri}", this.ResourceUri);
-            var bc = 0u;
+            var bc = 0uL;
             try
             {
+                var httpClient = this.Config.GetHttpClient();
+
+                using var request = new HttpRequestMessage(HttpMethod.Get, this.ResourceUri);
+                var sendRequestTask = httpClient.SendAsync(request, token);
+
+                this.Log.Verbose("Requesting {@Uri}", this.ResourceUri);
+
                 using var respMsg = await sendRequestTask;
-                this.Log.Information("Got {@Uri} response {@Status}", this.ResourceUri, respMsg.StatusCode);
+                if (respMsg.IsSuccessStatusCode)
+                    this.Log.Verbose("Got {@Uri} response {@Status}", this.ResourceUri, respMsg.StatusCode);
+                else
+                    this.Log.Warning("Got {@Uri} response {@Status}", this.ResourceUri, respMsg.StatusCode);
 
                 using var httpContStream = await respMsg.Content.ReadAsStreamAsync();
-                bc = await httpContStream.CopyToPipeAsync(dataPipe, token);
+
+                var buffer = new byte[this.Config.BufferSize];
+                while (true)
+                {
+                    if (false == await canEnqueue(token))
+                    {
+                        this.Log.Warning($"canEnqueue returns false");
+                        break;
+                    }
+                    var rc = await httpContStream.ReadAsync(
+                        buffer,
+                        0,
+                        buffer.Length,
+                        token
+                    );
+                    if (rc > 0)
+                    {
+                        var msg = new byte[rc];
+                        Array.Copy(buffer, msg, rc);
+                        await enqueue(msg, token);
+
+                        bc += (uint)rc;
+                    }
+                    if (rc <= 0)
+                    {
+                        this.Log.Verbose("Download {@Uri} readAsync returns {rc}", rc);
+                        break;
+                    }
+                }
                 return bc;
             }
             catch (TaskCanceledException)
             {
                 this.Log.Warning("Cancelled when downloading from {@Uri}", this.ResourceUri);
-                return 0u;
+                return bc;
             }
             catch (Exception e)
             {
