@@ -3,12 +3,9 @@
     using System;
 
 
-    using Amazon.S3;
-
-
     public static class S3StorageConfigGetClientExtensions
     {
-        public static AmazonS3Client CreateClient(this S3StorageConfig s3Config)
+        public static S3ApiStorageClient CreateClient(this S3StorageConfig s3Config)
         {
             throw new NotImplementedException();
         }

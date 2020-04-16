@@ -9,10 +9,6 @@
     using System.Threading.Tasks;
 
 
-    using Amazon.S3;
-    using Amazon.S3.Transfer;
-
-
     using Hwic.Abstractings;
     using Hwic.Loggings;
 
@@ -48,22 +44,24 @@
             try
             {
                 using var s3Client = this.Config.CreateClient();
-                using var fileTransferUtility = new TransferUtility(s3Client);
 
                 using var senderPipe = new AnonymousPipeServerStream(PipeDirection.Out);
                 using var receiverPipe = new AnonymousPipeClientStream(
                     PipeDirection.In,
                     senderPipe.GetClientHandleAsString()
                 );
-                var writerTask = this.WriteToStreamAsync_(dequeue, canDequeue, senderPipe, token);
-
-                var uploadTask = fileTransferUtility.UploadAsync(
-                    stream: receiverPipe,
+                var writerTask = this.WriteToStreamAsync_(
+                    dequeue,
+                    canDequeue,
+                    senderPipe,
+                    optToken
+                );
+                var uploadTask = s3Client.UploadAsync(
+                    inputStream: receiverPipe,
                     bucketName: this.Config.BucketName,
                     key: this.Config.GenerateFilePath(this.ResourceUri),
-                    cancellationToken: token
+                    optToken: optToken
                 );
-
                 uploadSize = await writerTask;
                 senderPipe.WaitForPipeDrain();
 
@@ -72,13 +70,14 @@
             }
             catch (TaskCanceledException)
             {
+                log.Here().Warning("Upload resource {@Uri} cancelled after {@Bytes} bytes uploaded.", this.ResourceUri, uploadSize);
                 return uploadSize;
             }
-            catch (AmazonS3Exception s3Exception)
+            catch (Exception e)
             {
                 log.Here().Error(
-                    "AmazonS3Exception occurred when writing to S3 upload stream for {@Uri}: {@ErrorMessage}",
-                    this.ResourceUri, s3Exception.Message
+                    "Exception occurred when uploading stored resource {@Uri}: {@ErrorMessage}",
+                    this.ResourceUri, e.Message
                 );
                 throw;
             }
@@ -89,9 +88,11 @@
                 Func<CancellationToken, Task<Memory<byte>>> dequeue,
                 Func<CancellationToken, Task<bool>> canDequeue,
                 Stream stream,
-                CancellationToken token)
+                CancellationToken? optToken = null)
         {
             var log = this.GetLogger();
+
+            var token = optToken.GetValueOrDefault(CancellationToken.None);
             var wc = 0UL;
             try
             {

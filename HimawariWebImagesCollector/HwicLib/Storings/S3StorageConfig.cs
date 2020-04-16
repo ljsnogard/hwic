@@ -10,19 +10,41 @@
 
 
     using Hwic.Abstractings;
+    using Hwic.Net;
 
 
     using Serilog;
 
 
-    public class S3StorageConfig : IStorageConfig
+    public abstract class S3StorageConfig : IStorageConfig
     {
-        public readonly string BucketName;
+        public string BucketName { get; }
 
 
-        public S3StorageConfig(string bucketName)
+        public string AccessKey { get; }
+
+
+        public string SecretKey { get; }
+
+
+        public Uri ServiceUri { get; }
+
+
+        public IEnumerable<Socks5ProxyInfo> Proxies { get; }
+
+
+        protected S3StorageConfig(
+                string bucketName,
+                string accessKey,
+                string secretKey,
+                Uri serviceUri,
+                IEnumerable<Socks5ProxyInfo> proxies)
         {
             this.BucketName = bucketName;
+            this.AccessKey = accessKey;
+            this.SecretKey = secretKey;
+            this.ServiceUri = serviceUri;
+            this.Proxies = proxies;
         }
 
 
