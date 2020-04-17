@@ -5,7 +5,7 @@
 
     public static class S3StorageConfigGetClientExtensions
     {
-        public static S3ApiStorageClient CreateClient(this S3StorageConfig s3Config)
+        public static IS3UploadClient CreateUploadClient(this S3StorageConfig s3Config)
         {
             throw new NotImplementedException();
         }

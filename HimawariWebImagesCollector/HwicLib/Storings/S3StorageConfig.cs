@@ -3,21 +3,17 @@
     using System;
 
     using System.Collections.Generic;
-    using System.Collections.Specialized;
-
-    using System.IO;
-    using System.Linq;
 
 
     using Hwic.Abstractings;
     using Hwic.Net;
 
 
-    using Serilog;
-
-
     public abstract class S3StorageConfig : IStorageConfig
     {
+        public S3Provider Provider { get; }
+
+
         public string BucketName { get; }
 
 
@@ -27,23 +23,20 @@
         public string SecretKey { get; }
 
 
-        public Uri ServiceUri { get; }
-
-
         public IEnumerable<Socks5ProxyInfo> Proxies { get; }
 
 
         protected S3StorageConfig(
+                S3Provider provider,
                 string bucketName,
                 string accessKey,
                 string secretKey,
-                Uri serviceUri,
                 IEnumerable<Socks5ProxyInfo> proxies)
         {
+            this.Provider = provider;
             this.BucketName = bucketName;
             this.AccessKey = accessKey;
             this.SecretKey = secretKey;
-            this.ServiceUri = serviceUri;
             this.Proxies = proxies;
         }
 

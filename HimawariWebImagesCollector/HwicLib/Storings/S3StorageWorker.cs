@@ -43,7 +43,7 @@
             var uploadSize = 0UL;
             try
             {
-                using var s3Client = this.Config.CreateClient();
+                using var s3Client = this.Config.CreateUploadClient();
 
                 using var senderPipe = new AnonymousPipeServerStream(PipeDirection.Out);
                 using var receiverPipe = new AnonymousPipeClientStream(

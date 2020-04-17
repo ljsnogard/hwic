@@ -17,6 +17,10 @@
             => lazyGlobalLogger_.Value.ForContext<T>();
 
 
+        public static ILogger GetLogger(this Type t)
+            => lazyGlobalLogger_.Value.ForContext(t);
+
+
         private static ILogger InitLogger_()
         {
             var outputTemplate = 
