@@ -1,17 +1,19 @@
 ﻿namespace Hwic.Himawari
 {
-    using HtmlAgilityPack;
-
-    using Hwic.Loggings;
-    using Hwic.Net;
-
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Text;
+
     using System.Threading;
     using System.Threading.Tasks;
+
+
+    using HtmlAgilityPack;
+
+
+    using Hwic.Loggings;
+    using Hwic.Net;
 
 
     public class CIRA_GeoColor_UriGenerator
@@ -40,7 +42,7 @@
         { }
 
 
-        public IEnumerable<Uri> GenerateFromDocument(
+        public IEnumerable<(DateTimeOffset, Uri)> GenerateFromDocument(
                 HtmlDocument htmlDoc,
                 DateTimeOffset sinceTime)
         {
@@ -56,9 +58,13 @@
 
             log.Here().Debug(prefix);
 
-            var uriCollection = imgUrlStrings.Select(s => new Uri(prefix + s));
+            var uriCollection = imgUrlStrings
+                .Select(s => (this.GetImageTimeFromString(s), s))
+                .Where(tup => tup.Item1 >= sinceTime)
+                .Select(tup => (tup.Item1, new Uri(prefix + tup.Item2)));
 
-            log.Here().Debug(uriCollection.First().ToString());
+            (var dt, var uri) = uriCollection.First();
+            log.Here().Debug($"{dt}\n{uri}");
 
             return uriCollection;
         }
@@ -104,7 +110,7 @@
         }
 
 
-        public List<string> FindImageUriPathStrings(
+        public IEnumerable<string> FindImageUriPathStrings(
                 string innerTextKeyword,
                 HtmlDocument htmlDoc)
         {
@@ -118,18 +124,72 @@
             if (aTags == null || aTags.Count == 0)
                 throw new Exception($"No qualified nodes found with XPath: \"{xpath}\"");
 
-            var imgUrlStrings = aTags
+            return aTags
                 .Where(node => node.InnerText.Contains(innerTextKeyword, StringComparison.OrdinalIgnoreCase))
-                .Select(node => node.Attributes[K_HREF_ATTR].Value)
-                .ToList();
+                .Select(node => node.Attributes[K_HREF_ATTR].Value);
+        }
 
-            //var strBuilder = new StringBuilder();
-            //foreach (var s in imgUrlStrings)
-            //    strBuilder.AppendLine(s);
 
-            //log.Here().Debug(strBuilder.ToString());
+        /// <summary>
+        /// Prepend time info for strings like "prefix_20200908030000.ext"
+        /// </summary>
+        /// <param name="urlStr"></param>
+        /// <returns></returns>
+        public DateTimeOffset GetImageTimeFromString(string urlStr)
+        {
+            //var log = this.GetLogger();
 
-            return imgUrlStrings;
+            const string sample = "YYYYMMddHHmmss";
+
+            var lastUnderScore = urlStr.LastIndexOf("_");
+            var lastDot = urlStr.LastIndexOf(".");
+
+            if (lastUnderScore < 0 || lastDot < 0 || lastUnderScore > lastDot)
+                throw new ArgumentException($"unexpected string: {urlStr}");
+
+            var length = lastDot - lastUnderScore - 1;
+            if (length != sample.Length)
+                throw new ArgumentException($"illegal string: {urlStr}");
+
+            var dateTimeStr = urlStr.Substring(lastUnderScore + 1, length);
+
+            const int L_YEAR = 4;
+            const int L_MONTH = 2;
+            const int L_DAY = 2;
+            const int L_HOUR = 2;
+            const int L_MINUTE = 2;
+            const int L_SECOND = 2;
+
+            var offsetL = new[]
+            {
+                L_YEAR,
+                L_MONTH,
+                L_DAY,
+                L_HOUR,
+                L_MINUTE,
+                L_SECOND
+            };
+            var field = new int[offsetL.Length];
+            var offset = 0;
+            for (var i = 0; i < field.Length; ++i)
+            {
+                var subStr = dateTimeStr.Substring(offset, offsetL[i]);
+
+                //log.Debug($"#{i} {offset} {offsetL[i]}: {subStr}");
+
+                field[i] = System.Convert.ToInt32(subStr);
+                offset += offsetL[i];
+            }
+            var dt = new DateTimeOffset(
+                year  : field[0],
+                month : field[1],
+                day   : field[2],
+                hour  : field[3],
+                minute: field[4],
+                second: field[5],
+                offset: TimeSpan.Zero  // UTC time
+            );
+            return dt;
         }
     }
 }

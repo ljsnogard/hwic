@@ -3,7 +3,6 @@
     using System;
     using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Reflection;
 
 
@@ -39,7 +38,7 @@
 
             var uriCollection = generator.GenerateFromDocument(
                 this.ReadTestHtmlDoc_(),
-                DateTimeOffset.Now
+                DateTimeOffset.UnixEpoch
             );
             uriCollection.Any().Should().BeTrue();
         }
