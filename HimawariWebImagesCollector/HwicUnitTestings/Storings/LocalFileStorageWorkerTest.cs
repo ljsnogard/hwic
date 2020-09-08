@@ -42,13 +42,14 @@
                 .WriteTo.File($"{nameof(TestStoreFileAsync)}.log")
                 .CreateLogger();
 
-            var stworker = new LocalFileStorageWorker(stconfig, uri);
+            var stworker = new LocalFileStorageWorker(stconfig);
 
             var queue = new AsyncProducerConsumerQueue<Memory<byte>>();
 
             var tks = new CancellationTokenSource();
 
             var stTask = stworker.StoreAsync(
+                uri,
                 queue.DequeueAsync,
                 queue.OutputAvailableAsync,
                 tks.Token

@@ -1,11 +1,17 @@
 ﻿namespace Hwic.Storings
 {
-    public readonly struct S3Provider
+    public sealed class S3Provider
     {
         public string Name { get; }
 
 
-        public S3Provider(string name)
-            => this.Name = name;
+        public string EndPoint { get; }
+
+
+        public S3Provider(string name, string endpoint)
+        {
+            this.Name = name;
+            this.EndPoint = endpoint;
+        }
     }
 }

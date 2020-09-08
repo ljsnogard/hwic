@@ -8,6 +8,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Flurl;
 
     using HtmlAgilityPack;
 
@@ -54,15 +55,22 @@
             var path = this.indexPageUri_.AbsolutePath;
 
             path = path.Substring(0, path.LastIndexOf("/"));
-            var prefix = $"{scheme}://{host}{path}/";
+
+            var prefix = $"{scheme}://{Url.Combine(host, path)}";
+
+            //var prefix = $"{scheme}://{host}{path}/";
 
             log.Here().Debug(prefix);
 
             var uriCollection = imgUrlStrings
                 .Select(s => (this.GetImageTimeFromString(s), s))
                 .Where(tup => tup.Item1 >= sinceTime)
-                .Select(tup => (tup.Item1, new Uri(prefix + tup.Item2)));
-
+                .Select(tup =>
+                    (
+                        tup.Item1,
+                        new Uri(Url.Combine(prefix, tup.Item2))
+                    )
+                );
             (var dt, var uri) = uriCollection.First();
             log.Here().Debug($"{dt}\n{uri}");
 
@@ -77,12 +85,10 @@
                     new HttpDownloadConfig() :
                     new HttpDownloadConfig(this.socks5Proxy_);
 
-            var dlworker = new HttpClientDownloadWorker(
-                dlconfig,
-                this.indexPageUri_
-            );
+            var dlworker = new HttpClientDownloadWorker(dlconfig);
 
             return await dlworker.StartAsync(
+                this.indexPageUri_,
                 onRecvData,
                 tk => Task.FromResult(true)
             );

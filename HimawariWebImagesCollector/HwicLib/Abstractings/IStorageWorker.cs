@@ -11,11 +11,8 @@
         IStorageConfig Config { get; }
 
 
-        // the image resource this worker store for
-        Uri ResourceUri { get; }
-
-
         Task<ulong> StoreAsync(
+            Uri fileSourceUri,
             Func<CancellationToken, Task<Memory<byte>>> dequeueFn,
             Func<CancellationToken, Task<bool>> canDequeueFn,
             CancellationToken token = default

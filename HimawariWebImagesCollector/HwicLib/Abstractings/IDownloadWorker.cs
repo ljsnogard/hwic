@@ -1,7 +1,6 @@
 ﻿namespace Hwic.Abstractings
 {
     using System;
-    using System.IO;
 
     using System.Threading;
     using System.Threading.Tasks;
@@ -12,13 +11,11 @@
         IDownloadConfig DownloadConfig { get; }
 
 
-        Uri ResourceUri { get; }
-
-
         Task<ulong> StartAsync(
+            Uri resourceUri,
             Func<Memory<byte>, CancellationToken, Task> enqueueFn,
             Func<CancellationToken, Task<bool>> canEnqueuFn,
-            CancellationToken? optToken
+            CancellationToken token = default
         );
     }
 }

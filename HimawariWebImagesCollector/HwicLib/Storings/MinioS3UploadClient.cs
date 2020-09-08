@@ -9,12 +9,12 @@
     using Minio;
 
 
-    public sealed class MinioS3Client : IS3UploadClient
+    public readonly struct MinioS3UploadClient : IS3UploadClient
     {
         private readonly MinioClient client_;
 
 
-        public MinioS3Client(MinioClient client)
+        public MinioS3UploadClient(MinioClient client)
             => this.client_ = client;
 
 
@@ -22,7 +22,7 @@
                 Stream inputStream,
                 string bucketName,
                 string key,
-                CancellationToken token)
+                CancellationToken token = default)
         {
             if (false == await this.client_.BucketExistsAsync(bucketName, token))
                 throw new System.Exception($"Bucket ({bucketName}) not found");

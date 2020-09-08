@@ -7,7 +7,7 @@
     using Flurl;
 
 
-    public class UriGenerator_D531106
+    public class Himawari_NICT_UriGenerator_D531106
     {
         public int ResolutionOption => 20;
 
