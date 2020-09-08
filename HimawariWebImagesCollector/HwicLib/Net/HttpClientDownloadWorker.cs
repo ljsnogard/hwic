@@ -81,7 +81,8 @@
                     }
                     if (rc <= 0)
                     {
-                        log.Here().Verbose("Download {@Uri} readAsync returns {rc}", rc);
+                        if (rc < 0)
+                            log.Here().Warning("Download {@Uri} readAsync returns unexpected {@ReadByteCount}", this.ResourceUri, rc);
                         break;
                     }
                 }

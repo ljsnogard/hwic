@@ -28,4 +28,10 @@
     <ProjectReference Include="..\HwicLib\HwicLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Himawari\TestHtmlContent.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
