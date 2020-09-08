@@ -35,11 +35,10 @@
         public async Task<ulong> StoreAsync(
                 Func<CancellationToken, Task<Memory<byte>>> dequeue,
                 Func<CancellationToken, Task<bool>> canDequeue,
-                CancellationToken? optToken = null)
+                CancellationToken token = default)
         {
             var log = this.GetLogger();
 
-            var token = optToken.GetValueOrDefault(CancellationToken.None);
             var uploadSize = 0UL;
             try
             {
@@ -54,13 +53,13 @@
                     dequeue,
                     canDequeue,
                     senderPipe,
-                    optToken
+                    token
                 );
                 var uploadTask = s3Client.UploadAsync(
                     inputStream: receiverPipe,
                     bucketName: this.Config.BucketName,
                     key: this.Config.GenerateFilePath(this.ResourceUri),
-                    optToken: optToken
+                    token: token
                 );
                 uploadSize = await writerTask;
                 senderPipe.WaitForPipeDrain();
@@ -88,11 +87,10 @@
                 Func<CancellationToken, Task<Memory<byte>>> dequeue,
                 Func<CancellationToken, Task<bool>> canDequeue,
                 Stream stream,
-                CancellationToken? optToken = null)
+                CancellationToken token = default)
         {
             var log = this.GetLogger();
 
-            var token = optToken.GetValueOrDefault(CancellationToken.None);
             var wc = 0UL;
             try
             {

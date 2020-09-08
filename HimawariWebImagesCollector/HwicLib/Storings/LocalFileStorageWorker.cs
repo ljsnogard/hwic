@@ -34,18 +34,16 @@
         public async Task<ulong> StoreAsync(
                 Func<CancellationToken, Task<Memory<byte>>> dequeueFn,
                 Func<CancellationToken, Task<bool>> canDequeueFn,
-                CancellationToken? optToken = null)
+                CancellationToken token = default)
         {
             var log = this.GetLogger();
 
-            var token = optToken.GetValueOrDefault(CancellationToken.None);
-            var filePath = string.Empty;
             var writtenSize = 0UL;
             try
             {
                 using var fileContStream = this.Config.CreateFileStream(this.ResourceUri);
 
-                filePath = fileContStream.Name;
+                var filePath = fileContStream.Name;
                 log.Here().Information("Resource {@Uri} will store on local file {@Path}", this.ResourceUri, filePath);
 
                 while (true)

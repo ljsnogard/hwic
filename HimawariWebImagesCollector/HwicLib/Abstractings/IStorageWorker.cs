@@ -18,7 +18,7 @@
         Task<ulong> StoreAsync(
             Func<CancellationToken, Task<Memory<byte>>> dequeueFn,
             Func<CancellationToken, Task<bool>> canDequeueFn,
-            CancellationToken? optToken = null
+            CancellationToken token = default
         );
     }
 }

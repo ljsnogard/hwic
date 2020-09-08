@@ -13,7 +13,7 @@
             Stream inputStream,
             string bucketName,
             string key,
-            CancellationToken? optToken = null
+            CancellationToken token = default
         );
     }
 }
