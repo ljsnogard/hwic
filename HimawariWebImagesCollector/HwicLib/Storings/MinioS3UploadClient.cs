@@ -9,12 +9,12 @@
     using Minio;
 
 
-    public readonly struct MinioS3UploadClient : IS3UploadClient
+    public sealed class MinioS3UploadClient : IS3UploadClient
     {
         private readonly MinioClient client_;
 
 
-        public MinioS3UploadClient(MinioClient client)
+        internal MinioS3UploadClient(MinioClient client)
             => this.client_ = client;
 
 

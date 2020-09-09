@@ -9,7 +9,7 @@
     using Hwic.Net;
 
 
-    public abstract class S3StorageConfig : IStorageConfig
+    public class S3StorageConfig : IStorageConfig
     {
         public S3Provider Provider { get; }
 
@@ -26,7 +26,7 @@
         public IEnumerable<Socks5ProxyInfo> Proxies { get; }
 
 
-        protected S3StorageConfig(
+        public S3StorageConfig(
                 S3Provider provider,
                 string bucketName,
                 string accessKey,

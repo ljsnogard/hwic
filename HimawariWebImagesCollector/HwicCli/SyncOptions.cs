@@ -22,23 +22,23 @@
         public string SecretKey { get; set; } 
 
 
-        [Option("src-proxy", Required = false)]
+        [Option("src-proxy", Required = false, HelpText = "SOCKS5 proxy for accessing to the source.")]
         public string SrcProxy { get; set; }
 
 
-        [Option("dst-proxy", Required = false)]
+        [Option("dst-proxy", Required = false, HelpText = "SOCKS5 proxy for accessing to the destination S3.")]
         public string DstProxy { get; set; }
 
 
-        [Option("all-proxy", Required = false)]
+        [Option("all-proxy", Required = false, HelpText = "SOCKS5 proxy for accessing to both of the source and the destination S3.")]
         public string AllProxy { get; set; }
 
 
-        [Option("dry-run", Default = false)]
+        [Option("dry-run", Default = false, HelpText = "Specify whether the actual images will be uploaded to the destination S3")]
         public bool DryRun { get; set; }
 
 
-        [Option('o', "output", Required = false, HelpText = "Output the Uris needed to synchronize to a file")]
+        [Option('o', "output", Required = false, HelpText = "Output to the file of a Uri list that shall be synchronize.")]
         public string Output { get; set; }
     }
 }
